@@ -1,15 +1,19 @@
-import Text.Parsec hiding (parse)
 import Util
 
 main = do
-  print ""
+  input <- allLines
+  let input = map read rawInput
+  -- part 1
+  print . sum . fmap op $ input
+  -- part 2
+  print . sum . fmap fuel $ input
   return ()
 
--- parser
-type Parser a = Parsec String () a
+op :: Int -> Int
+op i = (i `div` 3) - 2
 
-parse :: String -> Either ParseError _
-parse = runParser parser () ""
-
-parser :: Parser _
-parser = _
+fuel :: Int -> Int
+fuel i = if next < 0 then curr else curr + fuel curr
+  where
+  curr = op i
+  next = op curr

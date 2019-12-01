@@ -1,6 +1,11 @@
+module Util where
+
 import Data.List (sortBy, groupBy)
 import Data.Monoid ((<>))
 import Data.Function (on)
+
+allLines :: IO [String]
+allLines = fmap lines getContents
 
 prod :: [a] -> [b] -> [(a, b)]
 prod a b = [(x, y) | x <- a, y <- b]
