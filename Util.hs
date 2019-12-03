@@ -28,3 +28,10 @@ at (_:xs) n = at xs (pred n)
 
 applyNTimes :: Int -> (a -> a) -> a -> a
 applyNTimes n f = foldr (.) id (replicate n f)
+
+split :: (Eq a) => a -> [a] -> [[a]]
+split c s = case dropWhile (== c) s of
+  [] -> []
+  s' -> w : split c s''
+    where
+    (w, s'') = break (== c) s'
