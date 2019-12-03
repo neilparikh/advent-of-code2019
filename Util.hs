@@ -1,6 +1,6 @@
 module Util where
 
-import Data.List (sortBy, groupBy)
+import Data.List (sortBy, groupBy, sortOn)
 import Data.Monoid ((<>))
 import Data.Function (on)
 
@@ -35,3 +35,18 @@ split c s = case dropWhile (== c) s of
   s' -> w : split c s''
     where
     (w, s'') = break (== c) s'
+
+-- based on https://stackoverflow.com/a/25760740
+-- intersects by f, and then merges the element using g
+intersectBy :: Ord b => (a -> b) -> (a -> a -> a) -> [a] -> [a] -> [a]
+intersectBy f g xs ys = intersectSorted f g (sortOn f xs) (sortOn f ys)
+  where
+  intersectSorted :: Ord b => (a -> b) -> (a -> a -> a) -> [a] -> [a] -> [a]
+  intersectSorted f g (x:xs) (y:ys)
+   | f x == f y    = g x y : intersectSorted f g xs ys
+   | f x < f y     = intersectSorted f g xs (y:ys)
+   | f x > f y     = intersectSorted f g (x:xs) ys
+  intersectSorted _ _ _ _ = []
+
+fmapWithTag :: Functor f => (a -> b) -> f a -> f (a, b)
+fmapWithTag f = fmap (\x -> (x, f x))
