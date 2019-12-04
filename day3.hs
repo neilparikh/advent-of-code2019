@@ -1,33 +1,32 @@
 import Util
 import Data.List (minimumBy)
-import Data.Function (on)
+import Data.Ord (comparing)
 
 main = do
-  wire1 <- fmap (fmap parseOne . split ',') getLine
-  wire2 <- fmap (fmap parseOne . split ',') getLine
-  let a = pointsForWire wire1 (0, 0) 0
-  let b = pointsForWire wire2 (0, 0) 0
+  wire1 <- fmap (concatMap parseOne . split ',') getLine
+  wire2 <- fmap (concatMap parseOne . split ',') getLine
+  let a = points wire1
+  let b = points wire2
   -- part 1
-  print . minimumBy (compare `on` fst) . fmap op $ intersectBy fst const a b
+  print . fst . minimumBy (comparing fst) . fmap op $ intersectBy fst const a b
   -- part 2
-  print . minimumBy (compare `on` snd) . fmap op $ intersectBy fst (\(a, x) (b, y) -> (a, x + y)) a b
+  print . snd . minimumBy (comparing snd) . fmap op $ intersectBy fst (\(a, x) (b, y) -> (a, x + y)) a b
   return ()
 
 op ((x, y), s) = (x + y, s)
 
-parseOne :: String -> (Char, Int)
-parseOne (dir:num) = (dir, read num)
+parseOne :: String -> String
+parseOne (dir:num) = replicate (read num) dir
 
-pointsForWire :: [(Char, Int)] -> (Int, Int) -> Int -> [((Int, Int), Int)]
-pointsForWire [] _ _ = []
-pointsForWire ((dir, num):xs) (x, y) steps = case dir of
-  'U' -> fmap (\i -> ((x, y + i), steps + i)) [1..num] ++ rest
-  'D' -> fmap (\i -> ((x, y - i), steps + i)) [1..num] ++ rest
-  'R' -> fmap (\i -> ((x + i, y), steps + i)) [1..num] ++ rest
-  'L' -> fmap (\i -> ((x - i, y), steps + i)) [1..num] ++ rest
+points :: String -> [((Int, Int), Int)]
+points = (`zip` [1..]) . (`pointsForWire` (0, 0))
+
+pointsForWire :: String -> (Int, Int) -> [(Int, Int)]
+pointsForWire [] _ = []
+pointsForWire (dir:xs) (x, y) = newPoint : pointsForWire xs newPoint
   where
-  rest = case dir of
-    'U' -> pointsForWire xs (x, y + num) (steps + num)
-    'D' -> pointsForWire xs (x, y - num) (steps + num)
-    'R' -> pointsForWire xs (x + num, y) (steps + num)
-    'L' -> pointsForWire xs (x - num, y) (steps + num)
+  newPoint = case dir of
+    'U' -> (x, y + 1)
+    'D' -> (x, y - 1)
+    'R' -> (x + 1, y)
+    'L' -> (x - 1, y)
