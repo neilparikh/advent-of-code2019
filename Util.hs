@@ -3,6 +3,8 @@ module Util where
 import Data.List (sortBy, groupBy, sortOn)
 import Data.Monoid ((<>))
 import Data.Function (on)
+import Data.Ord (comparing)
+import Control.Arrow ((&&&))
 
 allLines :: IO [String]
 allLines = fmap lines getContents
@@ -14,9 +16,7 @@ groupOn :: (Eq b) => (a -> b) -> [a] -> [[a]]
 groupOn f = groupBy ((==) `on` f)
 
 sortOnMultiple :: (Ord b) => [a -> b] -> [a] -> [a]
-sortOnMultiple fs = sortBy (\a b -> foldl (<>) EQ $ map (\f -> f a b) fs')
-  where
-    fs' = map (compare `on`) fs
+sortOnMultiple fs = sortBy (\a b -> mconcat . map (\f -> comparing f a b) $ fs)
 
 myMaximum [] = 0
 myMaximum xs = maximum xs
@@ -49,4 +49,4 @@ intersectBy f g xs ys = intersectSorted f g (sortOn f xs) (sortOn f ys)
   intersectSorted _ _ _ _ = []
 
 fmapWithTag :: Functor f => (a -> b) -> f a -> f (a, b)
-fmapWithTag f = fmap (\x -> (x, f x))
+fmapWithTag f = fmap (id &&& f)
