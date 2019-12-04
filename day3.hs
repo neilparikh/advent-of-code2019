@@ -1,6 +1,5 @@
-import Util
-import Data.List (minimumBy)
-import Data.Ord (comparing)
+import Util (intersectBy, split)
+import Data.List (minimum)
 
 main = do
   wire1 <- fmap (concatMap parseOne . split ',') getLine
@@ -8,12 +7,12 @@ main = do
   let a = points wire1
   let b = points wire2
   -- part 1
-  print . fst . minimumBy (comparing fst) . fmap op $ intersectBy fst const a b
+  print . minimum . fmap (op . fst) $ intersectBy fst const a b
   -- part 2
-  print . snd . minimumBy (comparing snd) . fmap op $ intersectBy fst (\(a, x) (b, y) -> (a, x + y)) a b
+  print . minimum . fmap snd $ intersectBy fst (\(a, x) (b, y) -> (a, x + y)) a b
   return ()
 
-op ((x, y), s) = (x + y, s)
+op (x, y) = x + y
 
 parseOne :: String -> String
 parseOne (dir:num) = replicate (read num) dir
