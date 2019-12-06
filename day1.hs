@@ -1,19 +1,15 @@
-import Util
+{-# LANGUAGE ViewPatterns #-}
 
 main = do
-  input <- allLines
-  let input = map read rawInput
+  input <- fmap (fmap read . lines) getContents
   -- part 1
-  print . sum . fmap op $ input
-  -- part 2
   print . sum . fmap fuel $ input
+  -- part 2
+  print . sum . fmap fuelRecur $ input
   return ()
 
-op :: Int -> Int
-op i = (i `div` 3) - 2
-
 fuel :: Int -> Int
-fuel i = if next < 0 then curr else curr + fuel curr
-  where
-  curr = op i
-  next = op curr
+fuel i = (i `div` 3) - 2
+
+fuelRecur :: Int -> Int
+fuelRecur (fuel -> i) = if i < 0 then 0 else i + fuelRecur i
