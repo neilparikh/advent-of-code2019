@@ -50,3 +50,7 @@ intersectBy f g xs ys = intersectSorted f g (sortOn f xs) (sortOn f ys)
 
 fmapWithTag :: Functor f => (a -> b) -> f a -> f (a, b)
 fmapWithTag f = fmap (id &&& f)
+
+listToTuple :: [a] -> (a, a)
+listToTuple [x, y] = (x, y)
+listToTuple _ = error "list does not have exactly 2 elems"
