@@ -1,9 +1,10 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, TupleSections #-}
 
 import Util (split, listToTuple, allLines)
 import qualified Data.Map.Strict as M
 import Data.Tuple (swap)
-import Data.Maybe (catMaybes, isJust)
+import Data.Maybe (catMaybes)
+import Data.List (unfoldr)
 
 newtype Len a = Len { unLen :: Int } deriving Num
 safeLen :: [a] -> Len a
@@ -30,12 +31,7 @@ pathLength m = let
   go _ _ = error "should not happen"
 
 pathToRoot :: M.Map String String -> String -> [String]
-pathToRoot m = reverse . catMaybes . takeWhile isJust . iterate ((`M.lookup` m) =<<) . Just
+pathToRoot m = reverse . unfoldr (\k -> fmap (k,) (M.lookup k m))
 
 numOrbits :: M.Map String String -> Int
-numOrbits m = go (M.keys m) 0
-  where
-  go :: [String] -> Int -> Int
-  go [] acc = acc
-  go keys acc = let
-    newKeys = filter (/= "COM") . catMaybes . fmap (`M.lookup` m) $ keys in go newKeys (acc + length keys)
+numOrbits m = sum $ fmap (length . pathToRoot m) (M.keys m)
