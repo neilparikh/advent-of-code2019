@@ -1,7 +1,13 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+
 import Util (split, listToTuple, allLines)
 import qualified Data.Map.Strict as M
 import Data.Tuple (swap)
 import Data.Maybe (catMaybes, isJust)
+
+newtype Len a = Len { unLen :: Int } deriving Num
+safeLen :: [a] -> Len a
+safeLen = Len . length
 
 main = do
   input <- fmap (M.fromList . fmap (swap . listToTuple . split ')')) allLines
@@ -20,7 +26,7 @@ pathLength m = let
   go :: [String] -> [String] -> Int
   go (x:xs) (y:ys)
     | x == y = go xs ys
-    | otherwise = length xs + length ys
+    | otherwise = unLen (safeLen xs + safeLen ys)
   go _ _ = error "should not happen"
 
 pathToRoot :: M.Map String String -> String -> [String]
