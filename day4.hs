@@ -23,4 +23,4 @@ hasExactlyTwoDouble :: String -> Bool
 hasExactlyTwoDouble = common (== 2)
 
 common :: (Int -> Bool) -> String -> Bool
-common f = (not . null) . filter (f . length) . group . sort
+common f = (not . null) . filter (f . length) . group

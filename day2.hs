@@ -11,7 +11,7 @@ main = do
   print $ exec (replaceProgram program (12, 2))
   -- part 2
   let possibleInputs = prod [0..99] [0..99]
-  let (a, b) = head . filter ((== 19690720) . exec . replaceProgram program) $ possibleInputs
+  let [(a, b)] = filter ((== 19690720) . exec . replaceProgram program) possibleInputs
   print $ 100 * a + b
   return ()
 
@@ -21,12 +21,13 @@ replaceProgram p (a, b) = p V.// [(1, a), (2, b)]
 exec :: Program -> Int
 exec = (V.! 0) . flip go 0
   where
-  go prog i = case prog V.! i of
-    1 -> go (newProg (a + b)) (i + 4)
-    2 -> go (newProg (a * b)) (i + 4)
-    99 -> prog
-    where
-    a = prog V.! (prog V.! (i + 1))
-    b = prog V.! (prog V.! (i + 2))
-    cIndex = prog V.! (i + 3)
-    newProg newVal = V.modify (\v -> VM.write v cIndex newVal) prog
+  go prog i = let
+    set j val = V.modify (\v -> VM.write v j val) prog
+    get j mode = if mode == 1 then prog V.! j else prog V.! (prog V.! j)
+    arg1 = get (i + 1) 0
+    arg2 = get (i + 2) 0
+    arg3 = get (i + 3) 1
+    in case get i 1 of
+      1 -> go (set arg3 (arg1 + arg2)) (i + 4)
+      2 -> go (set arg3 (arg1 * arg2)) (i + 4)
+      99 -> prog
