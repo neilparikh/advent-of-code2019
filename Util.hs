@@ -54,3 +54,12 @@ fmapWithTag f = fmap (id &&& f)
 listToTuple :: [a] -> (a, a)
 listToTuple [x, y] = (x, y)
 listToTuple _ = error "list does not have exactly 2 elems"
+
+count :: (Eq a) => a -> [a] -> Int
+count x = length . filter (== x)
+
+chunksOf :: Int -> [a] -> [[a]]
+chunksOf _ [] = []
+chunksOf n l
+  | n > 0 = take n l : chunksOf n (drop n l)
+  | otherwise = error "Negative or zero n"
