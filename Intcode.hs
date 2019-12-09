@@ -1,13 +1,15 @@
 {-# OPTIONS_GHC -Wall #-}
 module Intcode (Program, exec, toProgram) where
 
-import qualified Data.Vector as V
-import qualified Data.Vector.Generic.Mutable as VM
+import qualified Data.IntMap.Strict as IM
 
-type Program = V.Vector Int
+-- It might be more efficient to use IM.IntMap (V.Vector Int)
+-- ie. chunks of vectors
+-- so lookup within a chunk is fast
+type Program = IM.IntMap Int
 
 toProgram :: [Int] -> Program
-toProgram = V.fromList
+toProgram = IM.fromList . zip [0..]
 
 parseInsn :: Int -> [Int]
 parseInsn i = opcode : map (read . return) modes
@@ -22,29 +24,40 @@ parseInsn i = opcode : map (read . return) modes
     _ -> error "error parsing insn"
 
 exec :: Program -> [Int] -> [Int]
-exec p input' = go p input' 0
+exec p input' = go p input' 0 0
   where
-  go :: Program -> [Int] -> Int ->[Int]
-  go prog input i = let
+  go :: Program -> [Int] -> Int -> Int -> [Int]
+  go prog input i base = let
     set :: Int -> Int -> Program
-    set j val = V.modify (\v -> VM.write v j val) prog
-    get :: Int -> Int -> Int
-    get j mode = if mode == 1 then prog V.! j else prog V.! (prog V.! j)
-    [opcode, _, mode2, mode1] = parseInsn (get i 1)
-    arg1 = get (i + 1) mode1
-    arg2 = get (i + 2) mode2
-    arg3 = get (i + 3) 1
+    set j val = if j < 0 then error "negative index to set" else IM.insert j val prog
+    get :: Int -> Int
+    get j = IM.findWithDefault 0 j prog
+    getR j mode = if j < 0 then error "negative index to getR" else case mode of
+      0 -> get (get j)
+      1 -> get j
+      2 -> get (get j + base)
+      _ -> error "unknown mode"
+    getW j mode = if j < 0 then error "negative index to getW" else case mode of
+      0 -> get j
+      1 -> error "invalid mode for getW"
+      2 -> get j + base
+      _ -> error "unknown mode"
+    [opcode, mode3, mode2, mode1] = parseInsn (get i)
+    arg1 = getR (i + 1) mode1
+    arg2 = getR (i + 2) mode2
+    arg3 = getW (i + 3) mode3
     in case opcode of
-      1 -> go (set arg3 (arg1 + arg2)) input (i + 4)
-      2 -> go (set arg3 (arg1 * arg2)) input (i + 4)
+      1 -> go (set arg3 (arg1 + arg2)) input (i + 4) base
+      2 -> go (set arg3 (arg1 * arg2)) input (i + 4) base
       3 -> let
-        dest = get (i + 1) 1
+        dest = getW (i + 1) mode1
         newProg = set dest (head input)
-        in go newProg (tail input) (i + 2)
-      4 -> arg1 : go prog input (i + 2)
-      5 -> if arg1 == 0 then go prog input (i+3) else go prog input arg2
-      6 -> if arg1 /= 0 then go prog input (i+3) else go prog input arg2
-      7 -> go (set arg3 (if arg1 < arg2 then 1 else 0)) input (i + 4)
-      8 -> go (set arg3 (if arg1 == arg2 then 1 else 0)) input (i + 4)
+        in go newProg (tail input) (i + 2) base
+      4 -> arg1 : go prog input (i + 2) base
+      5 -> go prog input (if arg1 == 0 then i+3 else arg2) base
+      6 -> go prog input (if arg1 /= 0 then i+3 else arg2) base
+      7 -> go (set arg3 (if arg1 < arg2 then 1 else 0)) input (i + 4) base
+      8 -> go (set arg3 (if arg1 == arg2 then 1 else 0)) input (i + 4) base
+      9 -> go prog input (i + 2) (base + arg1)
       99 -> []
       _ -> error "Unknown op"
