@@ -2,19 +2,29 @@
 
 import System.Process (readProcess)
 import Control.Monad (unless)
+import Data.Time.Clock (diffUTCTime, getCurrentTime, NominalDiffTime)
 
 main :: IO ()
 main = do
-  mapM_ testDayN [1..9]
+  times <- mapM testDayN [1..9]
+  putStrLn $ "Total time is " ++ show (sum times)
   return ()
 
-testDayN :: Int -> IO ()
+testDayN :: Int -> IO NominalDiffTime
 testDayN n = do
   let hsName = "day" ++ show n ++ ".hs"
+  _ <- readProcess "ghc" [hsName] ""
   let inName = "io/day" ++ show n ++ ".in"
   let outName = "io/day" ++ show n ++ ".out"
   input <- readFile inName
   expectedOutput <- readFile outName
-  realOutput <- readProcess "runhaskell" [hsName] input
+
+  start <- getCurrentTime
+  realOutput <- readProcess ("./day" ++ show n) [] input
+  end <- getCurrentTime
+
   unless (expectedOutput == realOutput) (error $ "Day " ++ show n ++ " failed.")
-  putStrLn $ "Day " ++ show n ++ " passed."
+
+  let timeElapsed = end `diffUTCTime` start
+  putStrLn $ "Day " ++ show n ++ " passed in " ++ show timeElapsed
+  return timeElapsed
