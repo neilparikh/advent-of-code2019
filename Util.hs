@@ -63,3 +63,7 @@ chunksOf _ [] = []
 chunksOf n l
   | n > 0 = take n l : chunksOf n (drop n l)
   | otherwise = error "Negative or zero n"
+
+-- Filters by f, then maps by g
+filterMap :: (a -> Bool) -> (a -> b) -> [a] -> [b]
+filterMap f g = fmap g . filter f

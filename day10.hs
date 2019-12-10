@@ -1,29 +1,49 @@
-{-# LANGUAGE TupleSections #-}
-import Text.Parsec hiding (parse)
-import Util
-import Data.Maybe
-import Data.Ratio
-import Debug.Trace
-import Data.List (nub)
+{-# OPTIONS_GHC -Wall #-}
+{-# LANGUAGE MultiWayIf, TupleSections #-}
+import Util (prod, filterMap)
+import Data.Maybe (catMaybes)
+import Data.Ratio ((%), numerator, denominator, Ratio)
+import Data.List (nub, maximumBy, sortBy)
 import Data.Set (Set)
 import qualified Data.Set as S
 import Control.Arrow ((&&&))
+import Data.Ord (comparing)
+import Data.Monoid ((<>))
 
-maxX = 10
-maxY = 10
+move :: (Int, Int) -> (Int, Int) -> (Int, Int)
+move (ax, ay) (bx, by) = (ax + bx, ay + by)
 
-a (ax, ay) (bx, by) = (ax + bx, ay + by)
-
+main :: IO ()
 main = do
-  input <- fmap lines getContents
-  let pts = findAll $ zip [0..] (fmap (zip [0..]) input)
-  let maxX = length (head input)
-  let maxY = length input
+  input <- getContents
+  let pts = parse input
+  let maxX = maximum $ fmap fst pts
+  let maxY = maximum $ fmap snd pts
   let pts_set = S.fromList pts
   let allPaths = nub $ reduce <$> prod [(-maxX)..maxX] [(-maxY)..maxY]
-  let forP p = sortOnMultiple [snd, fst] . filter (/= p) . nub . catMaybes $ fmap (\dir -> walkPath (maxX, maxY) pts_set (a dir p) dir) allPaths
-  print $ maximum . fmap (length . forP) $ pts
+  let forP p = filter (/= p) . nub . catMaybes $ fmap (\dir -> walkPath (maxX, maxY) pts_set (move dir p) dir) allPaths
+  let (index, a) = maximumBy (comparing (length . snd)) $ zip [0..] (fmap forP pts)
+  print $ length a
+  let sourcePoint = pts !! index
+  let (x, y) = (!! 199) $ sortBy (sorter sourcePoint) a
+  print $ x * 100 + y
   return ()
+
+sorter :: (Int, Int) -> (Int, Int) -> (Int, Int) -> Ordering
+sorter o a b = comparing (quad o) a b <> comparing (slope o) a b
+
+quad :: (Int, Int) -> (Int, Int) -> Int
+quad (ax, ay) (bx, by) = let x = bx - ax
+                             y = by - ay
+                         in if | x >= 0 && y < 0 -> 1
+                               | y >= 0 && x > 0 -> 2
+                               | x <= 0 && y > 0 -> 3
+                               | otherwise -> 4
+
+slope :: (Int, Int) -> (Int, Int) -> Ratio Int
+slope (ax, ay) (bx, by)
+  | ax == bx = (100000 * signum (by - ay)) % 1
+  | otherwise = (by - ay) % (bx - ax)
 
 walkPath :: (Int, Int) -> Set (Int, Int) -> (Int, Int) -> (Int, Int) -> Maybe (Int, Int)
 walkPath m@(maxX, maxY) allPts (x, y) (dx, dy)
@@ -37,13 +57,15 @@ reduce (x, 0) = (signum x, 0)
 reduce (0, y) = (0, signum y)
 reduce frac@(x, y) = ((s x . numerator) &&& (s y . denominator)) . uncurry (%) $ frac
   where
-  s x a
-    | x > 0 && a > 0 = a
-    | x < 0 && a < 0 = a
-    | otherwise = -a
+  -- ensures that n and a have the same sign
+  s n a
+    | signum n /= signum a = -a
+    | otherwise = a
+
+parse :: String -> [(Int, Int)]
+parse = findAll . zip [0..] . fmap (zip [0..]) . lines
 
 findAll :: [(Int, [(Int, Char)])] -> [(Int, Int)]
-findAll [] = []
-findAll ((y, row):xs) = let
-  rowPts = fmap fst . filter ((== '#') . snd) $ row
-  in fmap (,y) rowPts ++ findAll xs
+findAll = concatMap pointsForRow
+  where
+  pointsForRow (y, row) = filterMap ((== '#') . snd) ((,y) . fst) row
