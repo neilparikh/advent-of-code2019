@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiWayIf, TupleSections #-}
 import Util (filterMap, groupOn, fmapWithTag)
 import Data.Ratio ((%), Ratio)
-import Data.List (maximumBy, sortBy, sortOn, minimumBy, delete)
+import Data.List (maximumBy, sortOn, minimumBy, delete)
 import Data.Ord (comparing)
 import Data.Monoid ((<>))
 
@@ -21,7 +21,9 @@ main = do
   -- part 1
   print (length groupsByAngle)
   -- part 2
-  let (x, y) = minimumBy (comparing (distance bestAsteroid)) . (!! 199) . sortBy (comparing (angle bestAsteroid . head)) $ groupsByAngle
+  -- don't need to call sortBy (comparing (angle bestAsteroid . head)) on groupsByAngle,
+  -- since we sorted it when grouping it
+  let (x, y) = minimumBy (comparing (distance bestAsteroid)) . (!! 199) $ groupsByAngle
   print $ x * 100 + y
   return ()
 
@@ -30,7 +32,7 @@ distance :: (Int, Int) -> (Int, Int) -> Int
 distance (ax, ay) (bx, by) = (ax - bx)^(2 :: Int) + (ay - by)^(2 :: Int)
 
 -- an angle is a combination of its quadrant and its absolute slope
-data Angle = Angle { q :: Int, s :: Ratio Int }  deriving Eq
+data Angle = Angle Int (Ratio Int) deriving Eq
 
 instance Ord Angle where
   compare (Angle q1 slope1) (Angle q2 slope2) = compare q1 q2 <> compare slope1 slope2
