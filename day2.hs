@@ -1,9 +1,11 @@
+{-# OPTIONS_GHC -Wall #-}
 import qualified Data.Vector as V
 import qualified Data.Vector.Generic.Mutable as VM
 import Util (split, prod)
 
 type Program = V.Vector Int
 
+main :: IO ()
 main = do
   input <- fmap (fmap read . split ',') getContents
   let program = V.fromList input
@@ -23,6 +25,7 @@ exec = (V.! 0) . flip go 0
   where
   go prog i = let
     set j val = V.modify (\v -> VM.write v j val) prog
+    get :: Int -> Int -> Int
     get j mode = if mode == 1 then prog V.! j else prog V.! (prog V.! j)
     arg1 = get (i + 1) 0
     arg2 = get (i + 2) 0
@@ -31,3 +34,4 @@ exec = (V.! 0) . flip go 0
       1 -> go (set arg3 (arg1 + arg2)) (i + 4)
       2 -> go (set arg3 (arg1 * arg2)) (i + 4)
       99 -> prog
+      _ -> error "unknown op"

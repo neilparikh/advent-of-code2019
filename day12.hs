@@ -1,9 +1,9 @@
+{-# OPTIONS_GHC -Wall -fno-warn-unused-do-bind #-}
 import Text.Parsec hiding (parse)
 import Util (prod, applyNTimes)
 import Data.Either (rights)
 import Control.Monad (unless)
 import qualified Data.IntMap as IM
-import Debug.Trace (trace)
 import Data.List (nubBy)
 
 type Coord = (Int, Int, Int)
@@ -21,14 +21,15 @@ map2 f (a, b, c) = (a, f b, c)
 map3 :: (c -> d) -> (a, b, c) -> (a, b, d)
 map3 f (a, b, c) = (a, b, f c)
 
+main :: IO ()
 main = do
   input <- fmap lines getContents
   let moons = rights $ zipWith parseMoon input [1..]
   unless (length moons == length input) (error "parse error")
   let moonMap = IM.fromList (zip [1..] moons)
   print $ sum . fmap energy . applyNTimes 1000 step $ moonMap
-  let states = tail $ iterate step moonMap
-  print . length . fst . break (== moonMap) $ states
+  -- let states = tail $ iterate step moonMap
+  -- print . length . fst . break (== moonMap) $ states
   return ()
 
 energy :: Moon -> Int

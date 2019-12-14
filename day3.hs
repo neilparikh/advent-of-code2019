@@ -1,6 +1,8 @@
+{-# OPTIONS_GHC -Wall #-}
 import Util (intersectBy, split)
 import Data.List (minimum)
 
+main :: IO ()
 main = do
   wire1 <- fmap (concatMap parseOne . split ',') getLine
   wire2 <- fmap (concatMap parseOne . split ',') getLine
@@ -9,12 +11,14 @@ main = do
   -- part 1
   print . minimum . fmap (op . fst) $ intersectBy fst const a b
   -- part 2
-  print . minimum . fmap snd $ intersectBy fst (\(a, x) (b, y) -> (a, x + y)) a b
+  print . minimum . fmap snd $ intersectBy fst (\(i, x) (_, y) -> (i, x + y)) a b
   return ()
 
+op :: (Int, Int) -> Int
 op (x, y) = x + y
 
 parseOne :: String -> String
+parseOne "" = error "should not happen"
 parseOne (dir:num) = replicate (read num) dir
 
 points :: String -> [((Int, Int), Int)]
@@ -29,3 +33,4 @@ pointsForWire (dir:xs) (x, y) = newPoint : pointsForWire xs newPoint
     'D' -> (x, y - 1)
     'R' -> (x + 1, y)
     'L' -> (x - 1, y)
+    _ -> error "unknown direction"

@@ -1,5 +1,7 @@
 {-# LANGUAGE ViewPatterns #-}
+{-# OPTIONS_GHC -Wall #-}
 
+main :: IO ()
 main = do
   input <- fmap (fmap read . lines) getContents
   -- part 1

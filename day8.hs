@@ -1,3 +1,4 @@
+{-# OPTIONS_GHC -Wall #-}
 import Util (count, chunksOf)
 import Data.List (minimumBy, transpose)
 import Data.Ord (comparing)
@@ -9,6 +10,7 @@ width = 25
 height :: Int
 height = 6
 
+main :: IO ()
 main = do
   layers <- fmap (chunksOf (width * height)) getLine
   -- part 1

@@ -1,15 +1,15 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving, TupleSections #-}
-
+{-# OPTIONS_GHC -Wall #-}
 import Util (split, listToTuple, allLines)
 import qualified Data.Map.Strict as M
 import Data.Tuple (swap)
-import Data.Maybe (catMaybes)
 import Data.List (unfoldr)
 
 newtype Len a = Len { unLen :: Int } deriving Num
 safeLen :: [a] -> Len a
 safeLen = Len . length
 
+main :: IO ()
 main = do
   input <- fmap (M.fromList . fmap (swap . listToTuple . split ')')) allLines
   -- part 1

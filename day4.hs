@@ -1,6 +1,8 @@
+{-# OPTIONS_GHC -Wall #-}
 import Data.List (group, sort)
 import Util (split)
 
+main :: IO ()
 main = do
   [a, b] <- fmap (fmap read . split '-') getLine :: IO [Int]
   print . length . filter isValid1 $ map show [a..b]
