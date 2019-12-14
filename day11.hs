@@ -6,7 +6,6 @@ import qualified Data.Map.Strict as M
 
 type Board = M.Map (Int, Int) Int
 data Direction = U | R | D | L
-type Robot = (Direction, (Int, Int))
 
 data World = World {
   location :: (Int, Int)
