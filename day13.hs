@@ -11,6 +11,7 @@ main = do
   -- part 1
   let output = exec program []
   print $ length . filter (== 2) . fmap snd . M.toList . foldl insertCell M.empty . chunksOf 3 $ output
+  -- part 2
   let program' = IM.insert 0 2 program
   print $ solve program'
   return ()

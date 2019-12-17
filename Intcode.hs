@@ -12,16 +12,7 @@ toProgram :: [Int] -> Program
 toProgram = IM.fromList . zip [0..]
 
 parseInsn :: Int -> [Int]
-parseInsn i = opcode : map (read . return) modes
-  where
-  s = show i
-  opcode = read $ drop (length s - 2) s
-  modes = case take (length s - 2) s of
-    [mode3, mode2, mode1] -> [mode3, mode2, mode1]
-    [mode2, mode1] -> ['0', mode2, mode1]
-    [mode1] -> ['0', '0', mode1]
-    [] -> "000"
-    _ -> error "error parsing insn"
+parseInsn i = [i `mod` 100, (i `mod` 100000) `div` 10000, (i `mod` 10000) `div` 1000, (i `mod` 1000) `div` 100]
 
 exec :: Program -> [Int] -> [Int]
 exec p input' = go p input' 0 0
