@@ -11,7 +11,10 @@ main = do
 getPattern :: Int -> [Int]
 getPattern i = tail . cycle . concatMap (replicate i) $ [0, 1, 0, -1]
 
+patterns :: [[Int]]
+patterns = fmap getPattern [0..]
+
 step :: [Int] -> [Int]
 step input = fmap ((`mod` 10) . abs . ith) [1..(length input)]
   where
-  ith i = sum $ zipWith (*) input (getPattern i)
+  ith i = sum $ zipWith (*) input (patterns !! i)
