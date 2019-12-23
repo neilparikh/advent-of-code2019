@@ -6,7 +6,7 @@ import Data.Time.Clock (diffUTCTime, getCurrentTime, NominalDiffTime)
 
 main :: IO ()
 main = do
-  times <- mapM testDayN ([1..11] ++ [13])
+  times <- mapM testDayN [1..13]
   putStrLn $ "Total time is " ++ show (sum times)
   return ()
 

@@ -21,15 +21,29 @@ map2 f (a, b, c) = (a, f b, c)
 map3 :: (c -> d) -> (a, b, c) -> (a, b, d)
 map3 f (a, b, c) = (a, b, f c)
 
+x :: Moon -> (Int, Int)
+x (Moon _ (pos, _, _) (vel, _, _)) = (pos, vel)
+
+y :: Moon -> (Int, Int)
+y (Moon _ (_, pos, _) (_, vel, _)) = (pos, vel)
+
+z :: Moon -> (Int, Int)
+z (Moon _ (_, _, pos) (_, _, vel)) = (pos, vel)
+
 main :: IO ()
 main = do
   input <- fmap lines getContents
   let moons = rights $ zipWith parseMoon input [1..]
   unless (length moons == length input) (error "parse error")
   let moonMap = IM.fromList (zip [1..] moons)
+  -- part 1
   print $ sum . fmap energy . applyNTimes 1000 step $ moonMap
-  -- let states = tail $ iterate step moonMap
-  -- print . length . fst . break (== moonMap) $ states
+  -- part 2
+  let states = tail $ iterate step moonMap
+  let firstX = succ . length . takeWhile (\a -> fmap x a /= fmap x moonMap) $ states
+  let firstY = succ . length . takeWhile (\a -> fmap y a /= fmap y moonMap) $ states
+  let firstZ = succ . length . takeWhile (\a -> fmap z a /= fmap z moonMap) $ states
+  print (lcm (lcm firstX firstY) firstZ)
   return ()
 
 energy :: Moon -> Int
@@ -71,10 +85,10 @@ numParser = do
 moonParser :: Int -> Parser Moon
 moonParser k = do
   string "<x="
-  x <- numParser
+  xIn <- numParser
   string ", y="
-  y <- numParser
+  yIn <- numParser
   string ", z="
-  z <- numParser
+  zIn <- numParser
   string ">"
-  return $ Moon k (x, y, z) (0, 0, 0)
+  return $ Moon k (xIn, yIn, zIn) (0, 0, 0)
